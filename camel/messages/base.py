@@ -21,12 +21,7 @@ import re
 from dataclasses import dataclass
 from typing import (
     Any,
-    Dict,
-    List,
     Literal,
-    Optional,
-    Tuple,
-    Union,
 )
 
 from PIL import Image
@@ -76,30 +71,28 @@ class BaseMessage:
 
     role_name: str
     role_type: RoleType
-    meta_dict: Optional[Dict[str, Any]]
+    meta_dict: dict[str, Any] | None
     content: str
 
-    video_bytes: Optional[bytes] = None
-    image_list: Optional[List[Image.Image]] = None
+    video_bytes: bytes | None = None
+    image_list: list[Image.Image] | None = None
     image_detail: Literal["auto", "low", "high"] = "auto"
     video_detail: Literal["auto", "low", "high"] = "auto"
-    parsed: Optional[Union[BaseModel, dict]] = None
+    parsed: BaseModel | dict | None = None
 
     @classmethod
     def make_user_message(
         cls,
         role_name: str,
         content: str,
-        meta_dict: Optional[Dict[str, str]] = None,
-        video_bytes: Optional[bytes] = None,
-        image_list: Optional[List[Image.Image]] = None,
-        image_detail: Union[
-            OpenAIVisionDetailType, str
-        ] = OpenAIVisionDetailType.AUTO,
-        video_detail: Union[
-            OpenAIVisionDetailType, str
-        ] = OpenAIVisionDetailType.LOW,
-    ) -> "BaseMessage":
+        meta_dict: dict[str, str] | None = None,
+        video_bytes: bytes | None = None,
+        image_list: list[Image.Image] | None = None,
+        image_detail: OpenAIVisionDetailType
+        | str = OpenAIVisionDetailType.AUTO,
+        video_detail: OpenAIVisionDetailType
+        | str = OpenAIVisionDetailType.LOW,
+    ) -> BaseMessage:
         r"""Create a new user message.
 
         Args:
@@ -135,16 +128,14 @@ class BaseMessage:
         cls,
         role_name: str,
         content: str,
-        meta_dict: Optional[Dict[str, str]] = None,
-        video_bytes: Optional[bytes] = None,
-        image_list: Optional[List[Image.Image]] = None,
-        image_detail: Union[
-            OpenAIVisionDetailType, str
-        ] = OpenAIVisionDetailType.AUTO,
-        video_detail: Union[
-            OpenAIVisionDetailType, str
-        ] = OpenAIVisionDetailType.LOW,
-    ) -> "BaseMessage":
+        meta_dict: dict[str, str] | None = None,
+        video_bytes: bytes | None = None,
+        image_list: list[Image.Image] | None = None,
+        image_detail: OpenAIVisionDetailType
+        | str = OpenAIVisionDetailType.AUTO,
+        video_detail: OpenAIVisionDetailType
+        | str = OpenAIVisionDetailType.LOW,
+    ) -> BaseMessage:
         r"""Create a new assistant message.
 
         Args:
@@ -175,7 +166,7 @@ class BaseMessage:
             OpenAIVisionDetailType(video_detail).value,
         )
 
-    def create_new_instance(self, content: str) -> "BaseMessage":
+    def create_new_instance(self, content: str) -> BaseMessage:
         r"""Create a new instance of the :obj:`BaseMessage` with updated
         content.
 
@@ -192,7 +183,7 @@ class BaseMessage:
             content=content,
         )
 
-    def __add__(self, other: Any) -> Union["BaseMessage", Any]:
+    def __add__(self, other: Any) -> BaseMessage | Any:
         r"""Addition operator override for :obj:`BaseMessage`.
 
         Args:
@@ -212,7 +203,7 @@ class BaseMessage:
             )
         return self.create_new_instance(combined_content)
 
-    def __mul__(self, other: Any) -> Union["BaseMessage", Any]:
+    def __mul__(self, other: Any) -> BaseMessage | Any:
         r"""Multiplication operator override for :obj:`BaseMessage`.
 
         Args:
@@ -252,7 +243,7 @@ class BaseMessage:
 
     def extract_text_and_code_prompts(
         self,
-    ) -> Tuple[List[TextPrompt], List[CodePrompt]]:
+    ) -> tuple[list[TextPrompt], list[CodePrompt]]:
         r"""Extract text and code prompts from the message content.
 
         Returns:
@@ -260,8 +251,8 @@ class BaseMessage:
                 list of text prompts and a list of code prompts extracted
                 from the content.
         """
-        text_prompts: List[TextPrompt] = []
-        code_prompts: List[CodePrompt] = []
+        text_prompts: list[TextPrompt] = []
+        code_prompts: list[CodePrompt] = []
 
         lines = self.content.split("\n")
         idx = 0
@@ -294,9 +285,9 @@ class BaseMessage:
     def from_sharegpt(
         cls,
         message: ShareGPTMessage,
-        function_format: Optional[FunctionCallFormatter[Any, Any]] = None,
+        function_format: FunctionCallFormatter[Any, Any] | None = None,
         role_mapping=None,
-    ) -> "BaseMessage":
+    ) -> BaseMessage:
         r"""Convert ShareGPT message to BaseMessage or FunctionCallingMessage.
         Note tool calls and responses have an 'assistant' role in CAMEL
 
@@ -369,7 +360,7 @@ class BaseMessage:
 
     def to_sharegpt(
         self,
-        function_format: Optional[FunctionCallFormatter] = None,
+        function_format: FunctionCallFormatter | None = None,
     ) -> ShareGPTMessage:
         r"""Convert BaseMessage to ShareGPT message
 
@@ -427,7 +418,7 @@ class BaseMessage:
         Returns:
             OpenAIUserMessage: The converted :obj:`OpenAIUserMessage` object.
         """
-        hybrid_content: List[Any] = []
+        hybrid_content: list[Any] = []
         hybrid_content.append(
             {
                 "type": "text",
@@ -467,10 +458,10 @@ class BaseMessage:
                 )
 
         if self.video_bytes:
-            import imageio.v3 as iio
+            import imageio.v3 as iio  # type: ignore[import-untyped]
             import numpy as np
 
-            base64Frames: List[str] = []
+            base64Frames: list[str] = []
             frame_count = 0
             # read video bytes
             video = iio.imiter(
@@ -539,7 +530,7 @@ class BaseMessage:
         """
         return {"role": "assistant", "content": self.content}
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         r"""Converts the message to a dictionary.
 
         Returns:

@@ -73,7 +73,7 @@ def test_create_presentation_basic(pptx_toolkit):
 
     # Verify it's a valid PPTX file by checking we can open it
     try:
-        import pptx
+        import pptx  # type: ignore[import-not-found]
 
         presentation = pptx.Presentation(str(file_path))
         # Should have 3 slides (1 title + 2 content)
@@ -194,8 +194,7 @@ def test_create_presentation_invalid_image_url(pptx_toolkit):
             "heading": "Slide with Bad Image",
             "bullet_points": ["This slide has an invalid image URL."],
             "img_keywords": (
-                "https://invalid-url-that-does-not-exist.example.com/"
-                "image.jpg"
+                "https://invalid-url-that-does-not-exist.example.com/image.jpg"
             ),
         },
     ]

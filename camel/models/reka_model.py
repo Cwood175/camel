@@ -12,7 +12,7 @@
 # limitations under the License.
 # ========= Copyright 2023-2024 @ CAMEL-AI.org. All Rights Reserved. =========
 import os
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
@@ -39,7 +39,7 @@ else:
     from camel.utils import observe
 
 if TYPE_CHECKING:
-    from reka.types import ChatMessage, ChatResponse
+    from reka.types import ChatMessage, ChatResponse  # type: ignore[import-not-found, import-untyped]
 
 try:
     import os
@@ -84,15 +84,15 @@ class RekaModel(BaseModelBackend):
     @dependencies_required('reka')
     def __init__(
         self,
-        model_type: Union[ModelType, str],
-        model_config_dict: Optional[Dict[str, Any]] = None,
-        api_key: Optional[str] = None,
-        url: Optional[str] = None,
-        token_counter: Optional[BaseTokenCounter] = None,
-        timeout: Optional[float] = None,
+        model_type: ModelType | str,
+        model_config_dict: dict[str, Any] | None = None,
+        api_key: str | None = None,
+        url: str | None = None,
+        token_counter: BaseTokenCounter | None = None,
+        timeout: float | None = None,
         **kwargs: Any,
     ) -> None:
-        from reka.client import AsyncReka, Reka
+        from reka.client import AsyncReka, Reka  # type: ignore[import-not-found, import-untyped]
 
         if model_config_dict is None:
             model_config_dict = RekaConfig().as_dict()
@@ -156,10 +156,10 @@ class RekaModel(BaseModelBackend):
 
     def _convert_openai_to_reka_messages(
         self,
-        messages: List[OpenAIMessage],
-        response_format: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[str]] = None,
-    ) -> List["ChatMessage"]:
+        messages: list[OpenAIMessage],
+        response_format: type[BaseModel] | None = None,
+        tools: list[str] | None = None,
+    ) -> list["ChatMessage"]:
         r"""Converts OpenAI API messages to Reka API messages.
 
         Args:
@@ -169,7 +169,7 @@ class RekaModel(BaseModelBackend):
         Returns:
             List[ChatMessage]: A list of messages converted to Reka's format.
         """
-        from reka.types import ChatMessage
+        from reka.types import ChatMessage  # type: ignore[import-not-found, import-untyped]
 
         reka_messages = []
         for msg in messages:
@@ -218,9 +218,9 @@ class RekaModel(BaseModelBackend):
     @observe(as_type="generation")
     async def _arun(
         self,
-        messages: List[OpenAIMessage],
-        response_format: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[OpenAIMessage],
+        response_format: type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         r"""Runs inference of Mistral chat completion.
 
@@ -287,9 +287,9 @@ class RekaModel(BaseModelBackend):
     @observe(as_type="generation")
     def _run(
         self,
-        messages: List[OpenAIMessage],
-        response_format: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[OpenAIMessage],
+        response_format: type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         r"""Runs inference of Mistral chat completion.
 

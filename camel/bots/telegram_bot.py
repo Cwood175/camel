@@ -12,14 +12,14 @@
 # limitations under the License.
 # ========= Copyright 2023-2024 @ CAMEL-AI.org. All Rights Reserved. =========
 import os
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from camel.agents import ChatAgent
 from camel.utils import dependencies_required
 
 # Conditionally import telebot types only for type checking
 if TYPE_CHECKING:
-    from telebot.types import (  # type: ignore[import-untyped]
+    from telebot.types import (  # type: ignore[import-not-found,import-untyped]
         Message,
     )
 
@@ -36,7 +36,7 @@ class TelegramBot:
     def __init__(
         self,
         chat_agent: ChatAgent,
-        telegram_token: Optional[str] = None,
+        telegram_token: str | None = None,
     ) -> None:
         self.chat_agent = chat_agent
 
@@ -50,7 +50,7 @@ class TelegramBot:
         else:
             self.token = telegram_token
 
-        import telebot  # type: ignore[import-untyped]
+        import telebot  # type: ignore[import-not-found,import-untyped]
 
         self.bot = telebot.TeleBot(token=self.token)
 

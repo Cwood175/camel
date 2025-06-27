@@ -16,12 +16,12 @@ import json
 import logging
 import os
 import uuid
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
-    from cohere.types import ChatMessageV2, ChatResponse
+    from cohere.types import ChatMessageV2, ChatResponse  # type: ignore[import-not-found]
 
 from camel.configs import COHERE_API_PARAMS, CohereConfig
 from camel.messages import OpenAIMessage
@@ -87,12 +87,12 @@ class CohereModel(BaseModelBackend):
     )
     def __init__(
         self,
-        model_type: Union[ModelType, str],
-        model_config_dict: Optional[Dict[str, Any]] = None,
-        api_key: Optional[str] = None,
-        url: Optional[str] = None,
-        token_counter: Optional[BaseTokenCounter] = None,
-        timeout: Optional[float] = None,
+        model_type: ModelType | str,
+        model_config_dict: dict[str, Any] | None = None,
+        api_key: str | None = None,
+        url: str | None = None,
+        token_counter: BaseTokenCounter | None = None,
+        timeout: float | None = None,
         **kwargs: Any,
     ):
         import cohere
@@ -187,10 +187,10 @@ class CohereModel(BaseModelBackend):
         return obj
 
     def _to_cohere_chatmessage(
-        self, messages: List[OpenAIMessage]
-    ) -> List["ChatMessageV2"]:
-        from cohere.types import ToolCallV2Function
-        from cohere.types.chat_message_v2 import (
+        self, messages: list[OpenAIMessage]
+    ) -> list["ChatMessageV2"]:
+        from cohere.types import ToolCallV2Function  # type: ignore[import-not-found]
+        from cohere.types.chat_message_v2 import (  # type: ignore[import-not-found]
             AssistantChatMessageV2,
             SystemChatMessageV2,
             ToolCallV2,
@@ -269,10 +269,10 @@ class CohereModel(BaseModelBackend):
 
     def _prepare_request(
         self,
-        messages: List[OpenAIMessage],
-        response_format: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        messages: list[OpenAIMessage],
+        response_format: type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         import copy
 
         request_config = copy.deepcopy(self.model_config_dict)
@@ -292,9 +292,9 @@ class CohereModel(BaseModelBackend):
     @observe(as_type="generation")
     def _run(
         self,
-        messages: List[OpenAIMessage],
-        response_format: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[OpenAIMessage],
+        response_format: type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         r"""Runs inference of Cohere chat completion.
 
@@ -326,7 +326,7 @@ class CohereModel(BaseModelBackend):
                 tags=["CAMEL-AI", str(self.model_type)],
             )
 
-        from cohere.core.api_error import ApiError
+        from cohere.core.api_error import ApiError  # type: ignore[import-not-found]
 
         request_config = self._prepare_request(
             messages, response_format, tools
@@ -373,9 +373,9 @@ class CohereModel(BaseModelBackend):
     @observe(as_type="generation")
     async def _arun(
         self,
-        messages: List[OpenAIMessage],
-        response_format: Optional[Type[BaseModel]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
+        messages: list[OpenAIMessage],
+        response_format: type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         r"""Runs inference of Cohere chat completion.
 

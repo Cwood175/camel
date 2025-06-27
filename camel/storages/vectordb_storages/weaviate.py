@@ -18,16 +18,12 @@ from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
     Literal,
-    Optional,
-    Union,
     cast,
 )
 
 if TYPE_CHECKING:
-    from weaviate import WeaviateClient
+    from weaviate import WeaviateClient  # type: ignore[import-not-found]
 
 from camel.logger import get_logger
 from camel.storages.vectordb_storages import (
@@ -140,38 +136,38 @@ class WeaviateStorage(BaseVectorStorage):
     def __init__(
         self,
         vector_dim: int,
-        collection_name: Optional[str] = None,
+        collection_name: str | None = None,
         connection_type: ConnectionType = "local",
         # Weaviate Cloud parameters
-        wcd_cluster_url: Optional[str] = None,
-        wcd_api_key: Optional[str] = None,
+        wcd_cluster_url: str | None = None,
+        wcd_api_key: str | None = None,
         # Local instance parameters
         local_host: str = "localhost",
         local_port: int = 8080,
         local_grpc_port: int = 50051,
-        local_auth_credentials: Optional[Union[str, Any]] = None,
+        local_auth_credentials: str | Any | None = None,
         # Embedded Weaviate parameters
         embedded_hostname: str = "127.0.0.1",
         embedded_port: int = 8079,
         embedded_grpc_port: int = 50050,
-        embedded_version: Optional[str] = None,
-        embedded_persistence_data_path: Optional[str] = None,
-        embedded_binary_path: Optional[str] = None,
-        embedded_environment_variables: Optional[Dict[str, str]] = None,
+        embedded_version: str | None = None,
+        embedded_persistence_data_path: str | None = None,
+        embedded_binary_path: str | None = None,
+        embedded_environment_variables: dict[str, str] | None = None,
         # Custom connection parameters
-        custom_http_host: Optional[str] = None,
-        custom_http_port: Optional[int] = None,
-        custom_http_secure: Optional[bool] = None,
-        custom_grpc_host: Optional[str] = None,
-        custom_grpc_port: Optional[int] = None,
-        custom_grpc_secure: Optional[bool] = None,
-        custom_auth_credentials: Optional[Any] = None,
+        custom_http_host: str | None = None,
+        custom_http_port: int | None = None,
+        custom_http_secure: bool | None = None,
+        custom_grpc_host: str | None = None,
+        custom_grpc_port: int | None = None,
+        custom_grpc_secure: bool | None = None,
+        custom_auth_credentials: Any | None = None,
         # Vector index configuration parameters
         vector_index_type: VectorIndexType = "hnsw",
         distance_metric: DistanceMetric = "cosine",
         # Common parameters
-        headers: Optional[Dict[str, str]] = None,
-        additional_config: Optional[Any] = None,
+        headers: dict[str, str] | None = None,
+        additional_config: Any | None = None,
         skip_init_checks: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -232,7 +228,7 @@ class WeaviateStorage(BaseVectorStorage):
         import weaviate
 
         # Map connection types to handler methods
-        connection_handlers: Dict[ConnectionType, Any] = {
+        connection_handlers: dict[ConnectionType, Any] = {
             'cloud': self._create_cloud_client,
             'local': self._create_local_client,
             'embedded': self._create_embedded_client,
@@ -404,10 +400,10 @@ class WeaviateStorage(BaseVectorStorage):
 
     def _get_vector_index_config(self, **kwargs: Any) -> Any:
         r"""Get vector index configuration based on user settings."""
-        import weaviate.classes.config as wvc
+        import weaviate.classes.config as wvc  # type: ignore[import-not-found]
 
         # Map distance metrics - type safety guaranteed by Literal
-        distance_metric_mapping: Dict[DistanceMetric, Any] = {
+        distance_metric_mapping: dict[DistanceMetric, Any] = {
             'cosine': wvc.VectorDistances.COSINE,
             'dot': wvc.VectorDistances.DOT,
             'l2-squared': wvc.VectorDistances.L2_SQUARED,
@@ -476,7 +472,7 @@ class WeaviateStorage(BaseVectorStorage):
 
     def add(
         self,
-        records: List[VectorRecord],
+        records: list[VectorRecord],
         **kwargs: Any,
     ) -> None:
         r"""Saves a list of vector records to the storage.
@@ -515,7 +511,7 @@ class WeaviateStorage(BaseVectorStorage):
 
     def delete(
         self,
-        ids: List[str],
+        ids: list[str],
         **kwargs: Any,
     ) -> None:
         r"""Deletes a list of vectors identified by their IDs from the storage.
@@ -533,7 +529,7 @@ class WeaviateStorage(BaseVectorStorage):
 
         try:
             collection = self._client.collections.get(self.collection_name)
-            from weaviate.classes.query import Filter
+            from weaviate.classes.query import Filter  # type: ignore[import-not-found]
 
             collection.data.delete_many(
                 where=Filter.by_id().contains_any(ids), **kwargs
@@ -547,7 +543,7 @@ class WeaviateStorage(BaseVectorStorage):
             raise RuntimeError(f"Failed to delete vectors from Weaviate: {e}")
 
     def _calculate_similarity_from_distance(
-        self, distance: Optional[float]
+        self, distance: float | None
     ) -> float:
         r"""Calculate similarity score based on distance metric.
 
@@ -615,7 +611,7 @@ class WeaviateStorage(BaseVectorStorage):
         self,
         query: VectorDBQuery,
         **kwargs: Any,
-    ) -> List[VectorDBQueryResult]:
+    ) -> list[VectorDBQueryResult]:
         r"""Searches for similar vectors in the storage based on the provided
         query.
 
@@ -628,7 +624,7 @@ class WeaviateStorage(BaseVectorStorage):
             List[VectorDBQueryResult]: A list of vectors retrieved from the
                 storage based on similarity to the query vector.
         """
-        from weaviate.classes.query import MetadataQuery
+        from weaviate.classes.query import MetadataQuery  # type: ignore[import-not-found]
 
         try:
             collection = self._client.collections.get(self.collection_name)
@@ -664,7 +660,7 @@ class WeaviateStorage(BaseVectorStorage):
                 # In newer versions of Weaviate, obj.vector returns a dict
                 # with 'default' key
 
-                vector: List[float] = []
+                vector: list[float] = []
                 if hasattr(obj, 'vector') and obj.vector is not None:
                     # New format: {'default': [vector_values]}
                     vector_data = obj.vector.get('default', [])
@@ -674,7 +670,7 @@ class WeaviateStorage(BaseVectorStorage):
                         and len(vector_data) > 0
                         and isinstance(vector_data[0], float)
                     ):
-                        vector = cast(List[float], vector_data)
+                        vector = cast(list[float], vector_data)
                     else:
                         # unsupported vector data format
                         vector = []
@@ -706,7 +702,6 @@ class WeaviateStorage(BaseVectorStorage):
         r"""Load the collection hosted on cloud service."""
         # For Weaviate, collections are automatically available when client
         # connects
-        pass
 
     @property
     def client(self) -> "WeaviateClient":
