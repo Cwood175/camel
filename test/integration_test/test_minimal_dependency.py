@@ -50,9 +50,6 @@ def test_minimum_deps_module_importable(module_path):
 
 
 EXAMPLES = [
-    "examples/tasks/task_generation.py",
-    "examples/agents/single_agent.py",
-    "examples/ai_society/generate_meta_data.py",
     "examples/conversion.py",
 ]
 

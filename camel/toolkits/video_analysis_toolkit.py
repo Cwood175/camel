@@ -145,17 +145,19 @@ class VideoAnalysisToolkit(BaseToolkit):
 
         self.vl_model = model
         # Ensure ChatAgent is initialized with a model if provided
+        import importlib
+
         if self.vl_model:
-            # Import ChatAgent at runtime to avoid circular imports
-            from camel.agents import ChatAgent
+            # Lazily import ChatAgent at runtime to avoid circular imports
+            ChatAgent = importlib.import_module('camel.agents').ChatAgent
 
             self.vl_agent = ChatAgent(
                 model=self.vl_model, output_language=self.output_language
             )
         else:
             # If no model is provided, use default model in ChatAgent
-            # Import ChatAgent at runtime to avoid circular imports
-            from camel.agents import ChatAgent
+            # Lazily import ChatAgent at runtime to avoid circular imports
+            ChatAgent = importlib.import_module('camel.agents').ChatAgent
 
             self.vl_agent = ChatAgent(output_language=self.output_language)
             logger.warning(

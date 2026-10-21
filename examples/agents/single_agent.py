@@ -11,9 +11,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ========= Copyright 2023-2024 @ CAMEL-AI.org. All Rights Reserved. =========
-from camel.agents import ChatAgent
 from camel.prompts import PromptTemplateGenerator
 from camel.types import TaskType
+
+
+# Defer importing the real ChatAgent to runtime to avoid circular imports.
+# Provide a lightweight lazy proxy that imports the real class when first instantiated.
+class _LazyChatAgent:
+    def __init__(self, *args, **kwargs):
+        from camel.agents import ChatAgent as _RealChatAgent
+
+        self._impl = _RealChatAgent(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._impl, name)
+
+
+ChatAgent = _LazyChatAgent
 
 
 def main(key: str = 'generate_users', num_roles: int = 50, model=None):

@@ -41,13 +41,97 @@ from openai import (
 from pydantic import BaseModel, ValidationError
 
 from camel.agents._types import ModelResponse, ToolCallRequest
-from camel.agents._utils import (
-    convert_to_function_tool,
-    convert_to_schema,
-    get_info_dict,
-    handle_logprobs,
-    safe_model_dump,
-)
+
+# NOTE: To avoid import-time circular dependencies (e.g., camel.toolkits importing
+# ChatAgent), we perform lazy imports for camel.agents._utils below and import
+# FunctionTool only for type checking. This prevents importing modules that
+# create cycles during module initialization.
+
+# Lazy loader placeholders for camel.agents._utils functions. These wrappers
+# will import the real implementations on first use.
+_convert_to_function_tool = None
+_convert_to_schema = None
+_get_info_dict = None
+_handle_logprobs = None
+_safe_model_dump = None
+
+
+def _ensure_utils_loaded():
+    global \
+        _convert_to_function_tool, \
+        _convert_to_schema, \
+        _get_info_dict, \
+        _handle_logprobs, \
+        _safe_model_dump
+    global \
+        convert_to_function_tool, \
+        convert_to_schema, \
+        get_info_dict, \
+        handle_logprobs, \
+        safe_model_dump
+    if _convert_to_function_tool is None:
+        from camel.agents._utils import (
+            convert_to_function_tool as _cf,
+        )
+        from camel.agents._utils import (
+            convert_to_schema as _cs,
+        )
+        from camel.agents._utils import (
+            get_info_dict as _gi,
+        )
+        from camel.agents._utils import (
+            handle_logprobs as _hl,
+        )
+        from camel.agents._utils import (
+            safe_model_dump as _sd,
+        )
+
+        _convert_to_function_tool = _cf
+        _convert_to_schema = _cs
+        _get_info_dict = _gi
+        _handle_logprobs = _hl
+        _safe_model_dump = _sd
+        # Rebind public names to the real implementations so subsequent calls
+        # go directly to the imported functions.
+        convert_to_function_tool = _convert_to_function_tool
+        convert_to_schema = _convert_to_schema
+        get_info_dict = _get_info_dict
+        handle_logprobs = _handle_logprobs
+        safe_model_dump = _safe_model_dump
+
+
+# Initial lightweight wrappers that ensure the utils module is imported on
+# first invocation and then forward calls to the real functions.
+def convert_to_function_tool(*args, **kwargs):
+    _ensure_utils_loaded()
+    return convert_to_function_tool(*args, **kwargs)
+
+
+def convert_to_schema(*args, **kwargs):
+    _ensure_utils_loaded()
+    return convert_to_schema(*args, **kwargs)
+
+
+def get_info_dict(*args, **kwargs):
+    _ensure_utils_loaded()
+    return get_info_dict(*args, **kwargs)
+
+
+def handle_logprobs(*args, **kwargs):
+    _ensure_utils_loaded()
+    return handle_logprobs(*args, **kwargs)
+
+
+def safe_model_dump(*args, **kwargs):
+    _ensure_utils_loaded()
+    return safe_model_dump(*args, **kwargs)
+
+
+# Import FunctionTool only for type checking to avoid importing camel.toolkits
+# at module import time (which may import ChatAgent and create a cycle).
+if TYPE_CHECKING:
+    from camel.toolkits import FunctionTool
+
 from camel.agents.base import BaseAgent
 from camel.memories import (
     AgentMemory,
@@ -65,7 +149,6 @@ from camel.models import (
 from camel.prompts import TextPrompt
 from camel.responses import ChatAgentResponse
 from camel.storages import JsonStorage
-from camel.toolkits import FunctionTool
 from camel.types import (
     ChatCompletion,
     ChatCompletionChunk,
