@@ -317,18 +317,18 @@ class TestHybridBrowserToolkit:
     def test_load_unified_analyzer_file_not_found(self):
         """Test handling of missing unified analyzer script."""
         mock_session = AsyncMock()
-        with patch(
-            'camel.toolkits.hybrid_browser_toolkit.browser_session'
-            '.NVBrowserSession',
-            return_value=mock_session,
+        with (
+            patch(
+                'camel.toolkits.hybrid_browser_toolkit.browser_session'
+                '.NVBrowserSession',
+                return_value=mock_session,
+            ),
+            patch('builtins.open', side_effect=FileNotFoundError),
+            patch('os.makedirs'),
+            patch('os.path.exists', return_value=True),
         ):
-            with (
-                patch('builtins.open', side_effect=FileNotFoundError),
-                patch('os.makedirs'),
-                patch('os.path.exists', return_value=True),
-            ):
-                with pytest.raises(FileNotFoundError):
-                    HybridBrowserToolkit()
+            with pytest.raises(FileNotFoundError):
+                HybridBrowserToolkit()
 
     def test_validate_ref_valid(self):
         """Test ref validation with valid input."""
@@ -375,6 +375,7 @@ class TestHybridBrowserToolkit:
     @pytest.mark.asyncio
     async def test_open_browser_no_start_url(self):
         """Test opening browser using the default start URL configured during initialization."""
+        mock_page = AsyncMock()
         mock_session = AsyncMock()
         mock_session.ensure_browser = AsyncMock()
         mock_session.get_page = AsyncMock(return_value=mock_page)
@@ -440,8 +441,7 @@ class TestHybridBrowserToolkit:
         ):
             # Create toolkit with custom default URL
             toolkit = HybridBrowserToolkit(
-                headless=True, 
-                default_start_url=TEST_URL
+                headless=True, default_start_url=TEST_URL
             )
             toolkit._session = mock_session
 
