@@ -59,6 +59,8 @@ class SentenceTransformerEncoder(BaseEmbedding[str]):
             list[list[float]]: A list that represents the generated embedding
                 as a list of floating-point numbers.
         """
+        from typing import cast
+
         from numpy import ndarray
 
         if not objs:
@@ -67,7 +69,7 @@ class SentenceTransformerEncoder(BaseEmbedding[str]):
             objs, normalize_embeddings=True, **kwargs
         )
         assert isinstance(embeddings, ndarray)
-        return embeddings.tolist()
+        return cast(list[list[float]], embeddings.tolist())
 
     def get_output_dim(self) -> int:
         r"""Returns the output dimension of the embeddings.

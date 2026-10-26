@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import os
-from typing import List, Optional
 
 from camel.logger import get_logger
 from camel.models import BaseModelBackend, ModelFactory
@@ -438,9 +437,9 @@ class HtmlGenToolkit(BaseToolkit):
 
     def __init__(
         self,
-        model: Optional[BaseModelBackend] = None,
-        timeout: Optional[float] = None,
-        workspace: Optional[str] = "./",
+        model: BaseModelBackend | None = None,
+        timeout: float | None = None,
+        workspace: str | None = "./",
     ):
         r"""Initialize the HtmlGenToolkit.
 
@@ -497,8 +496,10 @@ class HtmlGenToolkit(BaseToolkit):
             logger.error(f"Error generating one page html: {e}")
             return f"Error generating one page html: {e!s}"
 
+        workspace = self.workspace
+        assert workspace is not None
         # save to file
-        with open(os.path.join(self.workspace, filename), "w") as f:
+        with open(os.path.join(workspace, filename), "w") as f:
             f.write(response.msgs[0].content)
         result = (
             f"Content successfully written to file: {filename}"
@@ -527,8 +528,10 @@ class HtmlGenToolkit(BaseToolkit):
             logger.error(f"Error generating viewer html: {e}")
             return f"Error generating viewer html: {e!s}"
 
+        workspace = self.workspace
+        assert workspace is not None
         # save to file
-        with open(os.path.join(self.workspace, filename), "w") as f:
+        with open(os.path.join(workspace, filename), "w") as f:
             f.write(response.msgs[0].content)
         result = (
             f"Content successfully written to file: {filename}"
@@ -540,7 +543,7 @@ class HtmlGenToolkit(BaseToolkit):
         # self.viewer_html_agent.reset()
         return result
 
-    def get_tools(self) -> List[FunctionTool]:
+    def get_tools(self) -> list[FunctionTool]:
         r"""Returns a list of FunctionTool objects representing the
             functions in the toolkit.
 
