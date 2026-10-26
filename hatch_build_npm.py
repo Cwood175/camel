@@ -24,7 +24,6 @@ import json
 import re
 import subprocess
 from pathlib import Path
-from typing import Optional, Tuple
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
@@ -55,21 +54,21 @@ class NpmBuildHook(BuildHookInterface):
             base_dir / "camel" / "toolkits" / "hybrid_browser_toolkit" / "ts"
         )
 
-    def _parse_version(self, version_str: str) -> Tuple[int, int, int]:
+    def _parse_version(self, version_str: str) -> tuple[int, int, int]:
         """Parse version string into major, minor, patch numbers."""
-        version_str = version_str.strip().lstrip('v')
-        match = re.match(r'(\d+)\.(\d+)\.(\d+)', version_str)
+        version_str = version_str.strip().lstrip("v")
+        match = re.match(r"(\d+)\.(\d+)\.(\d+)", version_str)
         if match:
             return tuple(map(int, match.groups()))
         return (0, 0, 0)
 
     def _check_version_requirement(self, current: str, required: str) -> bool:
         """Check if current version meets requirement."""
-        if required.startswith('>='):
+        if required.startswith(">="):
             required_version = self._parse_version(required[2:])
             current_version = self._parse_version(current)
             return current_version >= required_version
-        elif required.startswith('^'):
+        elif required.startswith("^"):
             required_version = self._parse_version(required[1:])
             current_version = self._parse_version(current)
             return (
@@ -78,7 +77,7 @@ class NpmBuildHook(BuildHookInterface):
             )
         return True
 
-    def _get_package_requirements(self, ts_dir: Path) -> Optional[dict]:
+    def _get_package_requirements(self, ts_dir: Path) -> dict | None:
         """Get Node.js/npm version requirements
         from package.json or package-lock.json."""
         package_json = ts_dir / "package.json"
@@ -86,26 +85,26 @@ class NpmBuildHook(BuildHookInterface):
 
         try:
             if package_json.exists():
-                with open(package_json, 'r') as f:
+                with open(package_json, "r") as f:
                     data = json.load(f)
-                    if 'engines' in data:
-                        return data['engines']
+                    if "engines" in data:
+                        return data["engines"]
 
             if package_lock.exists():
-                with open(package_lock, 'r') as f:
+                with open(package_lock, "r") as f:
                     data = json.load(f)
-                    for pkg_name, pkg_data in data.get('packages', {}).items():
-                        if not pkg_name and 'engines' in pkg_data:
-                            return pkg_data['engines']
+                    for pkg_name, pkg_data in data.get("packages", {}).items():
+                        if not pkg_name and "engines" in pkg_data:
+                            return pkg_data["engines"]
 
-        except (json.JSONDecodeError, IOError) as e:
+        except (OSError, json.JSONDecodeError) as e:
             print(f"Warning: Could not read package requirements: {e}")
 
         return None
 
     def _check_node_npm_versions(
         self, ts_dir: Path
-    ) -> Tuple[Optional[str], Optional[str], bool]:
+    ) -> tuple[str | None, str | None, bool]:
         """Check Node.js and npm versions against requirements."""
         node_version = None
         npm_version = None
@@ -139,8 +138,8 @@ class NpmBuildHook(BuildHookInterface):
 
         requirements = self._get_package_requirements(ts_dir)
         if requirements:
-            if 'node' in requirements:
-                node_req = requirements['node']
+            if "node" in requirements:
+                node_req = requirements["node"]
                 if not self._check_version_requirement(node_version, node_req):
                     print(
                         f"Warning: Node.js version {node_version} does not meet requirement {node_req}"  # noqa:E501
@@ -151,8 +150,8 @@ class NpmBuildHook(BuildHookInterface):
                         f"✓ Node.js version {node_version} meets requirement {node_req}"  # noqa:E501
                     )
 
-            if 'npm' in requirements:
-                npm_req = requirements['npm']
+            if "npm" in requirements:
+                npm_req = requirements["npm"]
                 if not self._check_version_requirement(npm_version, npm_req):
                     print(
                         f"Warning: npm version {npm_version} does not meet requirement {npm_req}"  # noqa:E501
@@ -219,9 +218,7 @@ class NpmBuildHook(BuildHookInterface):
     def _print_manual_instructions(self, ts_dir: Path):
         """Print manual installation instructions."""
         print("Installing without TypeScript support")
-        print(
-            "To use hybrid_browser_toolkit, please install Node.js and " "run:"
-        )
+        print("To use hybrid_browser_toolkit, please install Node.js and run:")
         print(f"  cd {ts_dir}")
         print("  npm install && npm run build")
         print("  npx playwright install")
